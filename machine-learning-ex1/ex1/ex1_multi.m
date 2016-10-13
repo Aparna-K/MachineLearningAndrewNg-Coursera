@@ -100,11 +100,30 @@ fprintf('Theta computed from gradient descent: \n');
 fprintf(' %f \n', theta);
 fprintf('\n');
 
+% Plot the linear fit
+figure;
+original_x = data(:, 1:2);
+plot(original_x(:, 1), y, 'rx', 'MarkerSize', 10); % Plot the data
+ylabel('Price in 100,000s'); % Set the y􀀀axis label
+xlabel('size in sq-ft'); % Set the x􀀀axis label
+pause
+hold on
+plot(original_x(:,1), X*theta, '-')
+legend('Training data', 'Linear regression')
+hold off % don't overlay any more plots on this figure
+
 % Estimate the price of a 1650 sq-ft, 3 br house
 % ====================== YOUR CODE HERE ======================
 % Recall that the first column of X is all-ones. Thus, it does
 % not need to be normalized.
-price = 0; % You should change this
+test_data = [1650, 3];
+normalised_test_data = zeros(1,2);
+% mu and sigma from the training set; featureNormalize was called earlier 
+for i=1:2,
+	normalised_test_data(:, i) = ( test_data(:, i) .- mu(i) ) ./ sigma(i); 
+end
+
+price =  [ones(1,1) normalised_test_data]*theta; % add ones for x0
 
 
 % ============================================================
@@ -149,7 +168,7 @@ fprintf('\n');
 
 % Estimate the price of a 1650 sq-ft, 3 br house
 % ====================== YOUR CODE HERE ======================
-price = 0; % You should change this
+price = [1, 1650, 3] *theta; % You should change this
 
 
 % ============================================================

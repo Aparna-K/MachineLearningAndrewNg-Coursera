@@ -14,7 +14,14 @@ J = 0;
 %               You should set J to the cost.
 
 
+num_params = length(theta); %get the number of parameters, assuming theta is a nx1 vector
+hx_array = zeros(m, 1);
 
+for i=1:num_params,
+	hx_array= hx_array + theta(i) .* X(:, i);
+end
+
+J = (sum((hx_array - y) .^ 2 )/(2*m));
 
 
 % =========================================================================
