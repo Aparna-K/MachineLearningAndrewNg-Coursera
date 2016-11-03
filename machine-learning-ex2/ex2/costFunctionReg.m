@@ -36,11 +36,10 @@ J = non_regularized_cost + regularization_term;
 difference_hyp_actual = h_x - y;
 gradient_regularization_term = theta .* lambda ./ m;
 
+gradient_regularization_term(1) = 0; %since we don't add a regularization term for j=0
+
 for i=1:num_params
-	grad(i) = sum(difference_hyp_actual .* X(:, i))/m;
-	if(i > 1)
-		grad(i) = grad(i) + gradient_regularization_term(i);
-	end
+	grad(i) = sum(difference_hyp_actual .* X(:, i))/m + gradient_regularization_term(i);
 end
 
 % =============================================================
