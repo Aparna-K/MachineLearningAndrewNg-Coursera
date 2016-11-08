@@ -15,12 +15,16 @@ c = size(z, 2);
 % Instructions: Compute the gradient of the sigmoid function evaluated at
 %               each value of z (z can be a matrix, vector or scalar).
 
-for i = 1:r
-	for j = 1:c
-		g(i,j) = sigmoid(z(i,j)) * (1 - sigmoid(z(i,j)));
-	end
-end
+% For-loop implementation
 
+% for i = 1:r
+% 	for j = 1:c
+% 		g(i,j) = sigmoid(z(i,j)) * (1 - sigmoid(z(i,j)));
+% 	end
+% end
+
+% Vectorized implementation
+g = (sigmoid(z) .* (1 - sigmoid(z)));
 
 % =============================================================
 

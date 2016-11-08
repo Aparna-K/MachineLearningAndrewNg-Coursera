@@ -50,39 +50,56 @@ vectorized_y = arrayfun(@(o) vectorizeOutput(o, num_labels), y, ...
 						'UniformOutput', false);
 
 vectorized_y = cell2mat(vectorized_y);
-temp1 = zeros(size(y));
-for i = 1:m
-	temp2 = zeros(num_labels, 1);
-	for k = 1:num_labels
-		term1 = -1 * vectorized_y(i, k) * log(h_x(i, k));
-		term2 = (1 - vectorized_y(i, k)) * log(1 - h_x(i, k));
-		temp2(k) = term1 - term2;
-	end
-	temp1(i) = sum(temp2);
-end
+% For loop implementation
 
-J = sum(temp1)/m;
+% temp1 = zeros(size(y));
+% for i = 1:m
+% 	temp2 = zeros(num_labels, 1);
+% 	for k = 1:num_labels
+% 		term1 = -1 * vectorized_y(i, k) * log(h_x(i, k));
+% 		term2 = (1 - vectorized_y(i, k)) * log(1 - h_x(i, k));
+% 		temp2(k) = term1 - term2;
+% 	end
+% 	temp1(i) = sum(temp2);
+% end
 
-reg_term1 = 0;
-reg_term2 = 0;
+% vectorized implementation
 
-s_1 = size(Theta1,2);
-s_2 = size(Theta1, 1);
+term1 = vectorized_y .* log(h_x) * -1;
+term2 = ((1 - vectorized_y) .* log(1 - h_x));
+temp1 = term1 - term2;
+temp2 = sum(temp1');
 
-for i = 2:s_1
-	for j = 1:s_2
-		reg_term1 = reg_term1 + Theta1(j,i)^2;
-	end
-end
+J = sum(temp2)/m;
 
-s_1 = size(Theta2, 2);
-s_2 = size(Theta2, 1);
+% For-loop implementation
 
-for i = 2:s_1
-	for j = 1:s_2
-		reg_term2 = reg_term2 + Theta2(j, i)^2;
-	end
-end
+% reg_term1 = 0;
+% reg_term2 = 0;
+
+% s_1 = size(Theta1,2);
+% s_2 = size(Theta1, 1);
+
+% for i = 2:s_1
+% 	for j = 1:s_2
+% 		reg_term1 = reg_term1 + Theta1(j,i)^2;
+% 	end
+% end
+
+% s_1 = size(Theta2, 2);
+% s_2 = size(Theta2, 1);
+
+% for i = 2:s_1
+% 	for j = 1:s_2
+% 		reg_term2 = reg_term2 + Theta2(j, i)^2;
+% 	end
+% end
+
+
+% Vectorized implementation
+
+reg_term1 = sum(sum(Theta1(:, 2:end) .^ 2)); % no regularization on the bias parameter
+reg_term2 = sum(sum(Theta2(:, 2:end) .^ 2));
 
 regularization_term = (lambda/(2*m)) * (reg_term1 + reg_term2);
 
@@ -109,30 +126,33 @@ delta_3 = zeros(m, size(Theta2, 1));
 D_1 = zeros(size(Theta1));
 D_2 = zeros(size(Theta2));
 
-for i = 1:m
-	a_1 = X(i, :);
-	a_2 = sigmoid(a_1 * Theta1');
-	a_2 = [ones(1, 1) a_2];
-	a_3 = sigmoid(a_2 * Theta2');
+%  Implementation with a for loop
 
-	delta_3(i, :) = a_3 - vectorized_y(i, :);
-	a_2_no_bias = a_2(:, 2:end);
-	delta_2(i, :) = (delta_3(i, :) * Theta2(:, 2:end)) .* a_2_no_bias .* (1 - a_2_no_bias);
+% for i = 1:m
+% 	a_1 = X(i, :);
+% 	a_2 = sigmoid(a_1 * Theta1');
+% 	a_2 = [ones(1, 1) a_2]; % add a bias
+% 	a_3 = sigmoid(a_2 * Theta2');
 
-	D_1 = D_1 + (a_1' * delta_2(i, :))';
-	D_2 = D_2 + (a_2' * delta_3(i, :))';
-end
+% 	delta_3(i, :) = a_3 - vectorized_y(i, :);
 
-s_1 = size(Theta1,1);
-s_2 = size(Theta1, 2);
+% 	sigmoid_gradient_a_2 = sigmoidGradient(a_1 * Theta1'); % g'(z) = g(z) * [1 - g(z)]
 
-Theta1_grad(:, 1) = (1/m) * D_1(:, 1);
-Theta1_grad(:, 2:end) = (1/m)*(D_1(:, 2:end) + (lambda * Theta1(:, 2:end)));
+% 	delta_2(i, :) = (delta_3(i, :) * Theta2(:, 2:end)) .* sigmoid_gradient_a_2; %a_2_no_bias .* (1 - a_2_no_bias);
 
-Theta2_grad(:, 1) = (1/m) * D_2(:, 1);
-Theta2_grad(:, 2:end) = (1/m)*(D_2(:, 2:end) + (lambda * Theta2(:, 2:end)));
+% 	D_1 = D_1 + (a_1' * delta_2(i, :))';
+% 	D_2 = D_2 + (a_2' * delta_3(i, :))';
+% end
 
-grad = [Theta1_grad(:) ; Theta2_grad(:)];
+% Vectoized Implementation of back prop
+
+delta_3 = a3 - vectorized_y;
+sigmoid_gradient_a_2 = sigmoidGradient(X * Theta1');
+delta_2 = delta_3 * Theta2(:, 2:end) .* sigmoid_gradient_a_2;
+
+D_1 = (X' * delta_2)';
+D_2 = ([ones(m, 1) a2]' * delta_3)';
+
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
@@ -141,23 +161,11 @@ grad = [Theta1_grad(:) ; Theta2_grad(:)];
 %               and Theta2_grad from Part 2.
 %
 
+Theta1_grad(:, 1) = (1/m) * D_1(:, 1);
+Theta1_grad(:, 2:end) = (1/m)*(D_1(:, 2:end) + (lambda * Theta1(:, 2:end)));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Theta2_grad(:, 1) = (1/m) * D_2(:, 1);
+Theta2_grad(:, 2:end) = (1/m)*(D_2(:, 2:end) + (lambda * Theta2(:, 2:end)));
 
 % -------------------------------------------------------------
 
